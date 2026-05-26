@@ -117,14 +117,14 @@ with Clockify() as c:
 
 ## Releases
 
-Tag-driven. Push a `v*` tag and GitHub Actions builds `clockify.dxt` (+ a `.zip` copy) for Linux, macOS, and Windows and attaches them to a release:
+Tag-driven. Push a `v*` tag and GitHub Actions builds `clockify.mcpb` (+ a `.zip` copy) and attaches both to a release:
 
 ```bash
 git tag v0.1.0
 git push --tags
 ```
 
-The matrix builds vendored Python 3.10 wheels per platform, so each download only works on the OS it was built for.
+The bundle uses [MCPB](https://github.com/modelcontextprotocol/mcpb) manifest 0.4 with `server.type: "uv"`. It ships source only — no vendored wheels or platform-specific binaries. Claude Desktop's bundled `uv` resolves dependencies (and downloads a matching Python via `python-build-standalone`) on first launch, so the same `.mcpb` works on macOS, Linux, and Windows for any supported CPython.
 
 ## License
 
