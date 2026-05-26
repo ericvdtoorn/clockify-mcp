@@ -14,9 +14,17 @@ class ClockifyError(RuntimeError):
 
 
 def _iso(value: datetime | str) -> str:
+    """Normalize to Clockify's UTC ISO format. Naive values are interpreted as
+    local time; values with `Z` or an offset are honored as-is."""
     if isinstance(value, str):
-        return value
-    dt = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return value  # date-only or other; let the caller handle
+    else:
+        dt = value
+    if dt.tzinfo is None:
+        dt = dt.astimezone()
     return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 

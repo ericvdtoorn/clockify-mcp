@@ -11,11 +11,12 @@ from .client import Clockify
 
 
 def _to_iso_window(value: str, end_of_day: bool) -> str:
-    """`YYYY-MM-DD` expands to the start or end of that day in UTC. Anything
-    that already looks like an ISO timestamp (contains `T`) is passed through."""
+    """`YYYY-MM-DD` expands to the start or end of that day in local time
+    (the client layer converts to UTC). Anything that already looks like a
+    timestamp (contains `T`) is passed through."""
     if "T" in value:
         return value
-    return f"{value}T23:59:59Z" if end_of_day else f"{value}T00:00:00Z"
+    return f"{value}T23:59:59" if end_of_day else f"{value}T00:00:00"
 
 
 def _duration_minutes(start: str | None, end: str | None) -> str:
@@ -24,6 +25,12 @@ def _duration_minutes(start: str | None, end: str | None) -> str:
     s = datetime.fromisoformat(start.replace("Z", "+00:00"))
     e = datetime.fromisoformat(end.replace("Z", "+00:00"))
     return str(int((e - s).total_seconds() // 60))
+
+
+def _to_local_iso(value: str | None) -> str:
+    if not value:
+        return ""
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone().isoformat(timespec="seconds")
 
 
 def _entries_to_csv(entries: list[dict[str, Any]], project_names: dict[str, str]) -> str:
@@ -38,8 +45,8 @@ def _entries_to_csv(entries: list[dict[str, Any]], project_names: dict[str, str]
             e.get("id", ""),
             project_names.get(e.get("projectId") or "", ""),
             e.get("description") or "",
-            start,
-            end,
+            _to_local_iso(start),
+            _to_local_iso(end),
             _duration_minutes(start, end),
             "true" if e.get("billable") else "false",
         ])
@@ -86,8 +93,8 @@ def list_time_entries(
 ) -> list[dict[str, Any]]:
     """List recent time entries for the current user.
 
-    `start` and `end` are ISO 8601 UTC timestamps (e.g. "2026-05-01T00:00:00Z")
-    used to filter the window.
+    `start` and `end` are ISO 8601 timestamps used to filter the window. If no
+    `Z` or offset is given, local time is assumed.
     """
     return _c().time_entries(
         workspace_id=workspace_id,
@@ -102,13 +109,14 @@ def list_time_entries(
 def get_all_time_entries(start: str, end: str, workspace_id: str | None = None) -> str:
     """Fetch every time entry between `start` and `end` and return CSV.
 
-    `start` and `end` are dates (`YYYY-MM-DD`) or full ISO 8601 timestamps. A
-    bare date is expanded to cover the whole day in UTC — `start` becomes
-    `00:00:00Z`, `end` becomes `23:59:59Z`. Paginates internally, so it's safe
-    on multi-week ranges. Columns: `id, project, description, start, end,
-    duration_minutes, billable`. Project names are resolved from the
-    workspace's project list. CSV is preferred over paged JSON when you want
-    to summarize, aggregate, or compare a window.
+    `start` and `end` are dates (`YYYY-MM-DD`) or full ISO 8601 timestamps.
+    Bare dates expand to the whole day in the user's local timezone. Naive
+    timestamps (no `Z`/offset) are also interpreted as local. Paginates
+    internally — safe on multi-week ranges. Columns: `id, project, description,
+    start, end, duration_minutes, billable`. `start` and `end` in the CSV are
+    in local time with offset; project names are resolved from the workspace.
+    CSV is preferred over paged JSON when you want to summarize, aggregate, or
+    compare a window.
     """
     c = _c()
     entries = c.all_time_entries(
@@ -129,8 +137,9 @@ def add_time_entries(
 
     Each item in `entries` is a dict with fields:
       - `project` (required): project ID or name (case-insensitive match)
-      - `start` (required): ISO 8601 timestamp, e.g. "2026-05-26T09:00:00Z"
-      - `end` (optional): ISO 8601 timestamp; omit to start a running timer
+      - `start` (required): ISO 8601 timestamp; if no `Z` or offset is given,
+        local time is assumed (e.g. "2026-05-26T09:00:00")
+      - `end` (optional): same format as `start`; omit to start a running timer
       - `description` (optional)
       - `billable` (optional, default false)
 
