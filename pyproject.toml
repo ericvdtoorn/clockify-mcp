@@ -1,6 +1,6 @@
 [project]
 name = "clockify-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "Tiny Clockify SDK + MCP server for reading and adding time entries."
 requires-python = ">=3.10"
 dependencies = [
