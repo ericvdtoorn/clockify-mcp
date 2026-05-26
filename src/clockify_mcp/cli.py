@@ -48,7 +48,7 @@ def _cmd_entries(c: Clockify, args: argparse.Namespace) -> int:
         end = _fmt_dt(ti.get("end"))
         pname = names.get(e.get("projectId") or "", "—")
         desc = e.get("description") or ""
-        print(f"{start} → {end}  [{pname}]  {desc}".rstrip())
+        print(f"{e['id']}  {start} → {end}  [{pname}]  {desc}".rstrip())
     return 0
 
 
@@ -64,6 +64,30 @@ def _cmd_add(c: Clockify, args: argparse.Namespace) -> int:
     )
     print(f"added {entry['id']}  {_fmt_dt(entry.get('timeInterval', {}).get('start'))} → "
           f"{_fmt_dt(entry.get('timeInterval', {}).get('end'))}  [{args.project}]")
+    return 0
+
+
+def _cmd_update(c: Clockify, args: argparse.Namespace) -> int:
+    kwargs: dict[str, Any] = {}
+    if args.start is not None:
+        kwargs["start"] = _parse_time(args.start)
+    if args.end is not None:
+        kwargs["end"] = _parse_time(args.end)
+    if args.project is not None:
+        kwargs["project"] = args.project
+    if args.description is not None:
+        kwargs["description"] = args.description
+    if args.billable is not None:
+        kwargs["billable"] = args.billable
+    entry = c.update_time_entry(args.entry_id, **kwargs)
+    ti = entry.get("timeInterval") or {}
+    print(f"updated {entry['id']}  {_fmt_dt(ti.get('start'))} → {_fmt_dt(ti.get('end'))}")
+    return 0
+
+
+def _cmd_delete(c: Clockify, args: argparse.Namespace) -> int:
+    c.delete_time_entry(args.entry_id)
+    print(f"deleted {args.entry_id}")
     return 0
 
 
@@ -83,10 +107,30 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("description", nargs="?", default="")
     a.add_argument("--billable", action="store_true")
 
+    u = sub.add_parser("update", help="Update a time entry. Only fields you pass change.")
+    u.add_argument("entry_id")
+    u.add_argument("--start")
+    u.add_argument("--end")
+    u.add_argument("--project", help="Project name or ID.")
+    u.add_argument("--description")
+    billable = u.add_mutually_exclusive_group()
+    billable.add_argument("--billable", dest="billable", action="store_true", default=None)
+    billable.add_argument("--no-billable", dest="billable", action="store_false")
+
+    d = sub.add_parser("delete", help="Delete a time entry.")
+    d.add_argument("entry_id")
+
     args = p.parse_args(argv)
+    handlers = {
+        "projects": _cmd_projects,
+        "entries": _cmd_entries,
+        "add": _cmd_add,
+        "update": _cmd_update,
+        "delete": _cmd_delete,
+    }
     try:
         with Clockify() as c:
-            return {"projects": _cmd_projects, "entries": _cmd_entries, "add": _cmd_add}[args.cmd](c, args)
+            return handlers[args.cmd](c, args)
     except ClockifyError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

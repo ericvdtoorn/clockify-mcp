@@ -84,6 +84,25 @@ def add_time_entry(
     )
 
 
+@mcp.tool()
+def add_time_entries(
+    entries: list[dict[str, Any]],
+    workspace_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """Add multiple time entries in one call.
+
+    Each item in `entries` is a dict with the same fields as `add_time_entry`:
+    `project` (required), `start` (required, ISO 8601), and optional `end`,
+    `description`, `billable`. Per-item `workspace_id` is also accepted; the
+    top-level `workspace_id` is the default for items that don't set their own.
+
+    Fail-fast: on the first failure, earlier entries have already been written
+    and the error names which item failed. Use `list_time_entries` to inspect
+    state before retrying.
+    """
+    return _c().add_time_entries(entries, workspace_id=workspace_id)
+
+
 def main() -> None:
     mcp.run()
 

@@ -145,3 +145,54 @@ class Clockify:
         if tag_ids:
             body["tagIds"] = tag_ids
         return self._request("POST", f"/workspaces/{ws}/time-entries", json=body)
+
+    def add_time_entries(
+        self,
+        items: list[dict[str, Any]],
+        workspace_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        # Fail-fast: on the first error, previously-created entries remain on the server.
+        return [self.add_time_entry(workspace_id=workspace_id, **item) for item in items]
+
+    def get_time_entry(self, entry_id: str, workspace_id: str | None = None) -> dict[str, Any]:
+        ws = workspace_id or self.default_workspace_id
+        return self._request("GET", f"/workspaces/{ws}/time-entries/{entry_id}")
+
+    def update_time_entry(
+        self,
+        entry_id: str,
+        project: str | None = None,
+        start: datetime | str | None = None,
+        end: datetime | str | None = None,
+        description: str | None = None,
+        billable: bool | None = None,
+        workspace_id: str | None = None,
+        task_id: str | None = None,
+        tag_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
+        # Clockify's PUT replaces the entry, so we fetch first and merge.
+        ws = workspace_id or self.default_workspace_id
+        existing = self.get_time_entry(entry_id, workspace_id=ws)
+        interval = existing.get("timeInterval") or {}
+        body: dict[str, Any] = {
+            "start": _iso(start) if start is not None else interval.get("start"),
+            "projectId": (
+                self.find_project(project, workspace_id=ws)["id"] if project else existing.get("projectId")
+            ),
+            "description": description if description is not None else (existing.get("description") or ""),
+            "billable": billable if billable is not None else bool(existing.get("billable")),
+        }
+        new_end = _iso(end) if end is not None else interval.get("end")
+        if new_end is not None:
+            body["end"] = new_end
+        new_task = task_id if task_id is not None else existing.get("taskId")
+        if new_task:
+            body["taskId"] = new_task
+        new_tags = tag_ids if tag_ids is not None else existing.get("tagIds")
+        if new_tags:
+            body["tagIds"] = new_tags
+        return self._request("PUT", f"/workspaces/{ws}/time-entries/{entry_id}", json=body)
+
+    def delete_time_entry(self, entry_id: str, workspace_id: str | None = None) -> None:
+        ws = workspace_id or self.default_workspace_id
+        self._request("DELETE", f"/workspaces/{ws}/time-entries/{entry_id}")

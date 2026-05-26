@@ -25,6 +25,10 @@
     {
       "name": "add_time_entry",
       "description": "Add a time entry to a project by ID or name; omit `end` to start a running timer"
+    },
+    {
+      "name": "add_time_entries",
+      "description": "Bulk-add multiple time entries in one call; each item takes the same fields as add_time_entry"
     }
   ],
   "server": {
