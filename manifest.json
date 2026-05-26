@@ -1,0 +1,63 @@
+{
+  "manifest_version": "0.3",
+  "name": "clockify",
+  "display_name": "Clockify",
+  "version": "0.1.0",
+  "description": "Read and add Clockify time entries.",
+  "long_description": "This extension gives Claude access to a Clockify workspace.\n\nList workspaces and projects, view recent time entries within a date window, and create or start time entries against any project (by ID or by name, case-insensitive). Your API key is held in the server process and never enters Claude's context.\n\nNot affiliated with or endorsed by Clockify.",
+  "author": {
+    "name": "Eric van der Toorn",
+    "email": "info@woto.dev"
+  },
+  "tools": [
+    {
+      "name": "list_workspaces",
+      "description": "List all Clockify workspaces the current user belongs to"
+    },
+    {
+      "name": "list_projects",
+      "description": "List projects in a workspace (defaults to the user's active workspace)"
+    },
+    {
+      "name": "list_time_entries",
+      "description": "List recent time entries for the current user, optionally filtered by an ISO 8601 start/end window"
+    },
+    {
+      "name": "add_time_entry",
+      "description": "Add a time entry to a project by ID or name; omit `end` to start a running timer"
+    }
+  ],
+  "server": {
+    "type": "python",
+    "entry_point": "server.py",
+    "mcp_config": {
+      "command": "python3",
+      "args": ["${__dirname}/server.py"],
+      "env": {
+        "CLOCKIFY_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "Clockify API Key",
+      "description": "Your Clockify API key. Find it under Profile settings → API in Clockify.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "keywords": [
+    "clockify",
+    "time tracking",
+    "timesheet",
+    "time entries"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  }
+}

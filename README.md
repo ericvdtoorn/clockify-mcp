@@ -85,23 +85,6 @@ Exposed tools:
 
 `project` may be a project ID or a name (case-insensitive). `start` and `end` are ISO 8601 timestamps (e.g. `2026-05-26T09:00:00Z`). Omit `end` to start a running timer.
 
-## Claude Code plugin
-
-This repo is also a [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin. Install the Python package first (so the `clockify-mcp` script is on `PATH`), then add the plugin:
-
-```bash
-pip install git+https://github.com/ericvdtoorn/clockify-mcp.git
-```
-
-In Claude Code:
-
-```
-/plugin marketplace add ericvdtoorn/clockify-mcp
-/plugin install clockify-mcp@clockify-mcp
-```
-
-Make sure `CLOCKIFY_API_KEY` is set in the environment where Claude Code runs. The plugin exposes the MCP tools listed above.
-
 ## Library
 
 ```python
