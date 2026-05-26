@@ -88,8 +88,8 @@ Exposed tools:
 - `list_workspaces()`
 - `list_projects(workspace_id?)`
 - `list_time_entries(workspace_id?, page?, page_size?, start?, end?)`
-- `add_time_entry(project, start, end?, description?, workspace_id?, billable?)`
-- `add_time_entries(entries, workspace_id?)` — bulk variant; each item in `entries` accepts the same fields as `add_time_entry`
+- `get_all_time_entries(start, end, workspace_id?)` — every entry in the window, returned as CSV (`id, project, description, start, end, duration_minutes, billable`). `start` and `end` may be dates (`YYYY-MM-DD`) or full ISO 8601 timestamps. Paginates internally.
+- `add_time_entries(entries, workspace_id?)` — `entries` is a list; pass a single-item list for one entry. Each item takes `project`, `start`, optional `end`, `description`, `billable`.
 
 `project` may be a project ID or a name (case-insensitive). `start` and `end` are ISO 8601 timestamps (e.g. `2026-05-26T09:00:00Z`). Omit `end` to start a running timer.
 

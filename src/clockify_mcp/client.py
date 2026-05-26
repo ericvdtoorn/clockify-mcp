@@ -146,6 +146,35 @@ class Clockify:
             body["tagIds"] = tag_ids
         return self._request("POST", f"/workspaces/{ws}/time-entries", json=body)
 
+    def all_time_entries(
+        self,
+        start: datetime | str,
+        end: datetime | str,
+        workspace_id: str | None = None,
+        user_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        ws = workspace_id or self.default_workspace_id
+        uid = user_id or self.user_id
+        out: list[dict[str, Any]] = []
+        page = 1
+        page_size = 200
+        while True:
+            chunk = self.time_entries(
+                workspace_id=ws,
+                user_id=uid,
+                page=page,
+                page_size=page_size,
+                start=start,
+                end=end,
+            )
+            if not chunk:
+                break
+            out.extend(chunk)
+            if len(chunk) < page_size:
+                break
+            page += 1
+        return out
+
     def add_time_entries(
         self,
         items: list[dict[str, Any]],

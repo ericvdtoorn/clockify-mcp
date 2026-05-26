@@ -23,12 +23,12 @@
       "description": "List recent time entries for the current user, optionally filtered by an ISO 8601 start/end window"
     },
     {
-      "name": "add_time_entry",
-      "description": "Add a time entry to a project by ID or name; omit `end` to start a running timer"
+      "name": "get_all_time_entries",
+      "description": "Fetch every time entry in a start/end window and return CSV (id, project, description, start, end, duration_minutes, billable). `start`/`end` may be dates (YYYY-MM-DD) or ISO 8601 timestamps; dates expand to the full day in UTC. Paginates internally."
     },
     {
       "name": "add_time_entries",
-      "description": "Bulk-add multiple time entries in one call; each item takes the same fields as add_time_entry"
+      "description": "Add one or more time entries. Each item takes `project` (ID or name), `start` (ISO 8601), optional `end` (omit to start a running timer), `description`, and `billable`."
     }
   ],
   "server": {
