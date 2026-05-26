@@ -1,0 +1,14 @@
+{
+  "name": "clockify-mcp",
+  "description": "Read and add Clockify time entries from Claude Code via MCP.",
+  "version": "0.1.0",
+  "author": { "name": "Eric van der Toorn" },
+  "homepage": "https://github.com/ericvdtoorn/clockify-mcp",
+  "repository": "https://github.com/ericvdtoorn/clockify-mcp",
+  "license": "MIT",
+  "mcpServers": {
+    "clockify": {
+      "command": "clockify-mcp"
+    }
+  }
+}
