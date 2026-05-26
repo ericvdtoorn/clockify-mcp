@@ -115,6 +115,17 @@ with Clockify() as c:
     )
 ```
 
+## Releases
+
+Tag-driven. Push a `v*` tag and GitHub Actions builds `clockify.dxt` (+ a `.zip` copy) for Linux, macOS, and Windows and attaches them to a release:
+
+```bash
+git tag v0.1.0
+git push --tags
+```
+
+The matrix builds vendored Python 3.10 wheels per platform, so each download only works on the OS it was built for.
+
 ## License
 
 [MIT](LICENSE)
